@@ -684,7 +684,9 @@ class SelectionSliderView extends DescriptionView {
     events(): {[e: string]: string} {
         return {
             'slide': 'handleSliderChange',
-            'slidestop': 'handleSliderChanged'
+            'slidestop': 'handleSliderChanged',
+            'blur [contentEditable=true]': 'handleTextChange',
+            'keydown [contentEditable=true]': 'handleKeyDown'
         };
     }
 
@@ -699,6 +701,26 @@ class SelectionSliderView extends DescriptionView {
         this.readout.textContent = value;
     }
 
+
+    handleKeyDown(e: KeyboardEvent) {
+        if (e.keyCode === 13) { /* keyboard keycodes `enter` */
+            e.preventDefault();
+            this.handleTextChange();
+        }
+    }
+
+    handleTextChange() {
+        let currentIndex = this.model.get('index');
+        let options = this.model.get('_options_labels');
+        let index = options.indexOf(this.readout.textContent);
+        if (index !== -1 && index !== currentIndex) {
+            // Don't set textContent, it hasn't changed
+            this.model.set('index', index, {updated_view: this});
+            this.touch();
+        } else {
+            this.updateReadout(currentIndex);
+        }
+    }
     /**
      * Called when the slider value is changing.
      */
